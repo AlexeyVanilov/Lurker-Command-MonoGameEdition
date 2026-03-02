@@ -1,5 +1,4 @@
-﻿using LurkerCommand.Services;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 namespace GameEngine.Components.Core {
     public sealed class Camera2D
@@ -33,9 +32,6 @@ namespace GameEngine.Components.Core {
         public Camera2D(GraphicsDevice graphics)
         {
             this.graphics = graphics;
-
-            MinZoom = float.Parse(ConfigManager.Get("MinZoom", "0.5"));
-            MaxZoom = float.Parse(ConfigManager.Get("MaxZoom", "2.0"));
         }
 
         public Matrix GetViewMatrix()

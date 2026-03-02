@@ -1,64 +1,77 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.Xna.Framework.Input;
 
-namespace LurkerCommand.Services {
-    public static class ConfigManager {
+namespace LurkerCommand.Services
+{
+    public static class ConfigManager
+    {
         private static readonly string ConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.txt");
-        private static readonly Dictionary<string, string> Settings = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> Settings = new(16);
 
         public static void Initialize()
         {
-            if (!File.Exists(ConfigPath))
-            {
-                Settings["Width"] = "1440";
-                Settings["Height"] = "1080";
-                Settings["FullScreen"] = "false";
-                Settings["WindowTitle"] = "Lurker Command";
-                Settings["AltF4"] = "true";
-                Settings["AllowResizing"] = "false";
-                Settings["FullScreenKey"] = "F11";
-                Save();
-            }
-            else
+            if (File.Exists(ConfigPath))
             {
                 Load();
             }
+            else
+            {
+                SetDefaults();
+                Save();
+            }
         }
 
-        public static string Get(string key, string defaultValue = "")
+        private static void SetDefaults()
         {
-            return Settings.TryGetValue(key, out var value) ? value : defaultValue;
+            Settings["Width"] = "1440";
+            Settings["Height"] = "1080";
+            Settings["FullScreen"] = "false";
+            Settings["WindowTitle"] = "Lurker Command";
+            Settings["AltF4"] = "false";
+            Settings["AllowResizing"] = "true";
+            Settings["FullScreenKey"] = "F11";
         }
 
-        public static void Set(string key, string value)
+        public static T Get<T>(string key)
         {
-            Settings[key] = value;
-            Save();
+            if (!Settings.TryGetValue(key, out var value)) return default;
+
+            try
+            {
+                if (typeof(T) == typeof(int)) return (T)(object)int.Parse(value);
+                else if (typeof(T) == typeof(float)) return (T)(object)float.Parse(value);
+                else if (typeof(T) == typeof(bool)) return (T)(object)bool.Parse(value);
+                else if (typeof(T) == typeof(Keys)) return (T)Enum.Parse(typeof(Keys), value);
+                return (T)(object)value;
+            }
+            catch
+            {
+                return default;
+            }
         }
 
         private static void Load()
         {
-            if (!File.Exists(ConfigPath)) return;
-
-            foreach (var line in File.ReadAllLines(ConfigPath))
+            foreach (string line in File.ReadLines(ConfigPath))
             {
                 if (string.IsNullOrWhiteSpace(line)) continue;
-
-                var parts = line.Split(new[] { '=' }, 2);
-
-                if (parts.Length == 2)
+                int separator = line.IndexOf('=');
+                if (separator > 0)
                 {
-                    Settings[parts[0].Trim()] = parts[1].Trim();
+                    Settings[line[..separator].Trim()] = line[(separator + 1)..].Trim();
                 }
             }
         }
 
-        private static void Save()
+        public static void Save()
         {
-            var lines = Settings.Select(kvp => $"{kvp.Key}={kvp.Value}");
-            File.WriteAllLines(ConfigPath, lines);
+            using StreamWriter writer = new StreamWriter(ConfigPath);
+            foreach (var kvp in Settings)
+            {
+                writer.WriteLine($"{kvp.Key}={kvp.Value}");
+            }
         }
     }
 }

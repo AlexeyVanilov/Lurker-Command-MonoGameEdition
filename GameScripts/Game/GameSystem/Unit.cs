@@ -41,6 +41,7 @@ namespace LurkerCommand.GameSystem
         {
             valueText = new Text(font, "", Vector2.Zero);
             valueText.Transform.Parent = Transform;
+            valueText.OrderInLayer = 1;
 
             this.Value = Value;
             Moves = Value;

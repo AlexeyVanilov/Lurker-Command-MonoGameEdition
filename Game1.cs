@@ -5,44 +5,44 @@ using LurkerCommand.Services;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
 
 namespace LurkerCommand
 {
     public class Game1 : Game
     {
-        private GraphicsDeviceManager _graphics;
+        private readonly GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private Keys FullScreenKey;
+        private Keys _fullScreenKey;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+
+            ConfigManager.Initialize();
+            ApplyInitialSettings();
+        }
+
+        private void ApplyInitialSettings()
+        {
+            _graphics.PreferredBackBufferWidth = ConfigManager.Get<int>("Width");
+            _graphics.PreferredBackBufferHeight = ConfigManager.Get<int>("Height");
+            _graphics.IsFullScreen = ConfigManager.Get<bool>("FullScreen");
+            _graphics.HardwareModeSwitch = false;
+
+            Window.AllowAltF4 = ConfigManager.Get<bool>("AltF4");
+            Window.AllowUserResizing = ConfigManager.Get<bool>("AllowResizing");
+            Window.Title = ConfigManager.Get<string>("WindowTitle");
+            _fullScreenKey = ConfigManager.Get<Keys>("FullScreenKey");
         }
 
         protected override void Initialize()
         {
-            ConfigManager.Initialize();
             AssetManager.Init(Content);
-
-            _graphics.PreferredBackBufferWidth = int.Parse(ConfigManager.Get("Width", "1440"));
-            _graphics.PreferredBackBufferHeight = int.Parse(ConfigManager.Get("Height", "1080"));
-            _graphics.IsFullScreen = bool.Parse(ConfigManager.Get("FullScreen", "false"));
-            Window.AllowAltF4 = bool.Parse(ConfigManager.Get("AltF4", "true"));
-            Window.AllowUserResizing = bool.Parse(ConfigManager.Get("AllowResizing", "false"));
-            Window.Title = ConfigManager.Get("WindowTitle", "Lurker Command");
-            if (!Enum.TryParse(ConfigManager.Get("FullScreenKey", "F11"), out FullScreenKey))
-            {
-                FullScreenKey = Keys.F11;
-            }
-            _graphics.HardwareModeSwitch = false;
-
             _graphics.ApplyChanges();
 
-            GameScene game = new GameScene(GraphicsDevice);
-            SceneManager.SetScene(game);
-
+            SceneManager.SetScene(new GameScene(GraphicsDevice));
             base.Initialize();
         }
 
@@ -54,19 +54,23 @@ namespace LurkerCommand
         protected override void Update(GameTime gameTime)
         {
             InputManager.Update();
-            if(InputManager.IsKeyPressed(FullScreenKey)) {
+
+            if (InputManager.IsKeyPressed(_fullScreenKey))
+            {
                 _graphics.ToggleFullScreen();
+                ConfigManager.Save();
             }
+
             SceneManager.CurrentScene?.Update(gameTime);
             base.Update(gameTime);
         }
+
         protected override void Draw(GameTime gameTime)
         {
             if (!IsActive) return;
+
             GraphicsDevice.Clear(Color.Black);
-
             SceneManager.CurrentScene?.Draw(gameTime, _spriteBatch);
-
             base.Draw(gameTime);
         }
     }

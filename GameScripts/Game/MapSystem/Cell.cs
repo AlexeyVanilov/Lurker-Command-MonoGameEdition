@@ -13,6 +13,7 @@ namespace LurkerCommand.MapSystem
         public Image cellImage;
         public readonly Color defaultColor = Color.White;
         public readonly Color hiddenColor = new Color(175, 175, 175, 255);
+        private const float moveNoteOffset = 0.25f;
         private Unit currentUnit = null;
         private bool isVisible = false;
         private bool isEmpty = true;
@@ -41,7 +42,7 @@ namespace LurkerCommand.MapSystem
         {
             cellImage = new Image(texture, Vector2.Zero, scale, new Color(175, 175, 175, 255));
             cellImage.Transform.Parent = Transform;
-            cellImage.OrderInLayer = -1;
+            cellImage.OrderInLayer = 0;
             Init();
         }
 
@@ -51,7 +52,7 @@ namespace LurkerCommand.MapSystem
             moveNote.Transform.Parent = Transform;
             moveNote.Transform.LocalScale = Transform.LocalScale;
             Vector2 cellSize = cellImage.GetSize().ToVector2();
-            Vector2 center = cellSize * 0.25f;
+            Vector2 center = cellSize * moveNoteOffset;
             moveNote.Transform.LocalPosition = center;
 
             Toggle(false);

@@ -8,8 +8,11 @@ namespace GameEngine.Services
         private static KeyboardState _currentKeyEntry;
         private static KeyboardState _prevKeyEntry;
         private static MouseState _currentMouseEntry;
-        private static MouseState _prevMouseEntry; 
+        private static MouseState _prevMouseEntry;
+
         public static int ScrollDelta => _currentMouseEntry.ScrollWheelValue - _prevMouseEntry.ScrollWheelValue;
+        public static Vector2 MousePosition => new Vector2(_currentMouseEntry.X, _currentMouseEntry.Y);
+        public static Vector2 MouseDelta => new Vector2(_currentMouseEntry.X - _prevMouseEntry.X, _currentMouseEntry.Y - _prevMouseEntry.Y);
 
         public static void Update()
         {
@@ -24,18 +27,22 @@ namespace GameEngine.Services
 
         public static bool IsKeyPressed(Keys key) => _currentKeyEntry.IsKeyDown(key) && _prevKeyEntry.IsKeyUp(key);
 
-        public static bool IsMouseButtonPressed(MouseButton button)
+        public static bool IsMouseButtonDown(MouseButton button) => button switch
         {
-            return button switch
-            {
-                MouseButton.Left => _currentMouseEntry.LeftButton == ButtonState.Pressed && _prevMouseEntry.LeftButton == ButtonState.Released,
-                MouseButton.Right => _currentMouseEntry.RightButton == ButtonState.Pressed && _prevMouseEntry.RightButton == ButtonState.Released,
-                _ => false
-            };
-        }
+            MouseButton.Left => _currentMouseEntry.LeftButton == ButtonState.Pressed,
+            MouseButton.Right => _currentMouseEntry.RightButton == ButtonState.Pressed,
+            MouseButton.Middle => _currentMouseEntry.MiddleButton == ButtonState.Pressed,
+            _ => false
+        };
 
-        public static Vector2 MousePosition => _currentMouseEntry.Position.ToVector2();
+        public static bool IsMouseButtonPressed(MouseButton button) => button switch
+        {
+            MouseButton.Left => _currentMouseEntry.LeftButton == ButtonState.Pressed && _prevMouseEntry.LeftButton == ButtonState.Released,
+            MouseButton.Right => _currentMouseEntry.RightButton == ButtonState.Pressed && _prevMouseEntry.RightButton == ButtonState.Released,
+            MouseButton.Middle => _currentMouseEntry.MiddleButton == ButtonState.Pressed && _prevMouseEntry.MiddleButton == ButtonState.Released,
+            _ => false
+        };
     }
 
-    public enum MouseButton { Left, Right }
+    public enum MouseButton { Left, Right, Middle }
 }
