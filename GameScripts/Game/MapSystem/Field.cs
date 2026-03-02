@@ -9,122 +9,142 @@ using System.Runtime.InteropServices;
 
 namespace LurkerCommand.MapSystem
 {
-    public static class Field {
-        private static readonly Queue<(Cell cell, int dist)> _bfsQueue = new(256);
-        private static readonly HashSet<Cell> _visited = new(256);
-        private static readonly List<Cell> _result = new(256);
-        private const byte sizeX = 32;
-        private const byte sizeY = 32;
-        private const byte cellScale = 2;
-        public static Cell[,] cells = new Cell[sizeX, sizeY];
-        public static int MapWidth { get; private set; }
-        public static int MapHeight { get; private set; }
+    public static class Field
+    {
+        private const int SizeX = 32;
+        private const int SizeY = 32;
+        private const int CellScale = 2;
+
+        public static readonly Cell[,] cells = new Cell[SizeX, SizeY];
+
+        private static readonly Cell[] ResultBuffer = new Cell[SizeX * SizeY];
+        private static readonly List<Cell> VisibleRegistry = new(SizeX * SizeY);
 
         public static int CellWidth { get; private set; }
         public static int CellHeight { get; private set; }
+        public static int MapWidth { get; private set; }
+        public static int MapHeight { get; private set; }
 
-        public static void SetMap(Scene scene) {
-            Texture2D cellTexture = AssetManager.GetTexture("square");
+        public static void SetMap(Scene scene)
+        {
+            Texture2D texture = AssetManager.GetTexture("square");
 
-            CellWidth = cellTexture.Width * cellScale;
-            CellHeight = cellTexture.Height * cellScale;
+            CellWidth = texture.Width * CellScale;
+            CellHeight = texture.Height * CellScale;
+            MapWidth = SizeX * CellWidth;
+            MapHeight = SizeY * CellHeight;
 
-            MapWidth = sizeX * CellWidth;
-            MapHeight = sizeY * CellHeight;
+            Vector2 scaleVec = new Vector2(CellScale);
 
-            for (byte x = 0; x < sizeX; x++) {
-                for (byte y = 0; y < sizeY; y++) {
-                    Vector2 worldPosition = new Vector2(x * CellWidth, y * CellHeight);
+            for (int y = 0; y < SizeY; y++)
+            {
+                for (int x = 0; x < SizeX; x++)
+                {
+                    Vector2 pos = new Vector2(x * CellWidth, y * CellHeight);
+                    Cell cell = new Cell(texture, pos, scaleVec);
+                    cell.gridPosition = new Point(x, y);
 
-                    cells[x, y] = new Cell(cellTexture, worldPosition, new Vector2(cellScale, cellScale));
-                    cells[x, y].gridPosition = new Point(x, y);
-                    scene.Add(cells[x, y]);
+                    cells[x, y] = cell;
+                    scene.Add(cell);
                 }
             }
         }
+
+        public static ReadOnlySpan<Cell> GetAvailableCells(Cell start, int range)
+            => GetStraightLines(start, range);
+
+        public static ReadOnlySpan<Cell> GetStraightLines(Cell start, int range)
+        {
+            int count = 0;
+            range -= 1;
+            Point p = start.gridPosition;
+
+            count = ScanDirection(p, 1, 0, range, count);
+            count = ScanDirection(p, -1, 0, range, count);
+            count = ScanDirection(p, 0, 1, range, count);
+            count = ScanDirection(p, 0, -1, range, count);
+
+            return new ReadOnlySpan<Cell>(ResultBuffer, 0, count);
+        }
+
+        private static int ScanDirection(Point start, int dx, int dy, int range, int count)
+        {
+            for (int i = 1; i <= range; i++)
+            {
+                int nx = start.X + (dx * i);
+                int ny = start.Y + (dy * i);
+
+                if ((uint)nx >= SizeX || (uint)ny >= SizeY) break;
+
+                Cell cell = cells[nx, ny];
+                if (!cell.IsEmpty) break;
+
+                ResultBuffer[count++] = cell;
+            }
+            return count;
+        }
+
         public static void UpdateVisibility(Unit unit)
         {
             if (unit == null) return;
-            Point unitPos = unit.gridPosition;
+
             ClearVisibility();
-            int radius = unit.Value;
+            Point p = unit.gridPosition;
+            int range = unit.Value;
 
-            for (int x = -radius; x <= radius; x++)
+            for (int x = -range; x <= range; x++)
             {
-                for (int y = -radius; y <= radius; y++)
+                for (int y = -range; y <= range; y++)
                 {
-                    if (Math.Abs(x) + Math.Abs(y) > radius) continue;
+                    if (Math.Abs(x) + Math.Abs(y) > range) continue;
 
-                    int cx = unitPos.X + x;
-                    int cy = unitPos.Y + y;
+                    int cx = p.X + x;
+                    int cy = p.Y + y;
 
-                    if (CellInField(cx, cy))
+                    if ((uint)cx < SizeX && (uint)cy < SizeY)
                     {
-                        cells[cx, cy].IsVisible = true;
+                        Cell cell = cells[cx, cy];
+                        cell.IsVisible = true;
+                        VisibleRegistry.Add(cell);
                     }
                 }
             }
         }
+
         public static void ClearVisibility()
         {
-            foreach (var cell in cells)
+            var span = CollectionsMarshal.AsSpan(VisibleRegistry);
+            for (int i = 0; i < span.Length; i++)
             {
-                cell?.IsVisible = false;
+                span[i].IsVisible = false;
             }
+            VisibleRegistry.Clear();
         }
 
-        public static ReadOnlySpan<Cell> GetAvailableCells(Cell startCell, int maxRange)
+        public static void ToggleMoveNotes(Cell cell, bool toggle, int range)
         {
-            _bfsQueue.Clear();
-            _visited.Clear();
-            _result.Clear();
-
-            _bfsQueue.Enqueue((startCell, 0));
-            _visited.Add(startCell);
-
-            while (_bfsQueue.Count > 0)
+            ReadOnlySpan<Cell> available = GetStraightLines(cell, range);
+            for (int i = 0; i < available.Length; i++)
             {
-                var (current, dist) = _bfsQueue.Dequeue();
-                if (dist > 0) _result.Add(current);
-                if (dist >= maxRange) continue;
-
-                Point p = current.gridPosition;
-                CheckNeighbor(p.X + 1, p.Y, dist + 1);
-                CheckNeighbor(p.X - 1, p.Y, dist + 1);
-                CheckNeighbor(p.X, p.Y + 1, dist + 1);
-                CheckNeighbor(p.X, p.Y - 1, dist + 1);
-            }
-
-            return CollectionsMarshal.AsSpan(_result);
-        }
-
-        private static void CheckNeighbor(int x, int y, int newDist)
-        {
-            Cell neighbor = GetCell(new Point(x, y));
-            if (neighbor != null && neighbor.IsEmpty && _visited.Add(neighbor))
-            {
-                _bfsQueue.Enqueue((neighbor, newDist));
-            }
-        }
-        public static Cell GetCellByWorldPos(Vector2 worldPosition) {
-            int x = (int)Math.Floor(worldPosition.X / CellWidth);
-            int y = (int)Math.Floor(worldPosition.Y / CellHeight);
-
-            return GetCell(x, y);
-        }
-        public static void ToggleMoveNotes(Cell cell, bool toggle, int value) {
-            ReadOnlySpan<Cell> available = GetAvailableCells(cell, value);
-            for (byte i = 0; i < available.Length; i++) {
                 available[i].Toggle(toggle);
             }
         }
-        public static bool CellInField(int x, int y) => x >= 0 && y >= 0 && x < sizeX && y < sizeY;
-        public static bool CellInField(Cell cell) => cell != null && CellInField(cell.gridPosition.X, cell.gridPosition.Y);
-        public static Cell GetCell(Point gridPosition) => GetCell(gridPosition.X, gridPosition.Y);
+
+        public static Cell GetCellByWorldPos(Vector2 worldPos)
+        {
+            int x = (int)(worldPos.X / CellWidth);
+            int y = (int)(worldPos.Y / CellHeight);
+            return GetCell(x, y);
+        }
+
+        public static Cell GetCell(Point p) => GetCell(p.X, p.Y);
+
         public static Cell GetCell(int x, int y)
         {
-            if (CellInField(x, y)) return cells[x, y];
-            return null;
+            return ((uint)x < SizeX && (uint)y < SizeY) ? cells[x, y] : null;
         }
+
+        public static bool CellInField(int x, int y) => (uint)x < SizeX && (uint)y < SizeY;
+        public static bool CellInField(Cell cell) => cell != null && CellInField(cell.gridPosition.X, cell.gridPosition.Y);
     }
 }

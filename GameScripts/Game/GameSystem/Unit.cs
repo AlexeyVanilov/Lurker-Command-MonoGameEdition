@@ -91,12 +91,13 @@ namespace LurkerCommand.GameSystem
         }
 
         public void OnDragStart() {
+            if (!CanMove()) return;
             valueText.Color *= draggingColorMultiplier;
-            if(CanMove()) 
-                Field.ToggleMoveNotes(currentCell, true, Value);
+            Field.ToggleMoveNotes(currentCell, true, Value);
         }
 
         public void OnDragUpdate(Vector2 position) {
+            if (!CanMove()) return;
             Transform.LocalPosition = position;
         }
 
@@ -108,7 +109,7 @@ namespace LurkerCommand.GameSystem
             Cell targetCell = Field.GetCellByWorldPos(Transform.LocalPosition);
             var availableCells = Field.GetAvailableCells(currentCell, Moves);
 
-            if (targetCell != null && availableCells.Contains(targetCell))
+            if (targetCell != null && CanMove() && availableCells.Contains(targetCell))
             {
                 int distance = Math.Abs(targetCell.gridPosition.X - currentCell.gridPosition.X) +
                                Math.Abs(targetCell.gridPosition.Y - currentCell.gridPosition.Y);
