@@ -5,7 +5,6 @@ namespace LurkerCommand.GameSystem
     public static class TeamManager
     {
         public const float TimeMultiplier = 1.2f;
-        private const float DefaultTurnTime = 30f;
 
         private static readonly Team[] Teams = new Team[2];
         private static int _currentIndex;
@@ -14,10 +13,10 @@ namespace LurkerCommand.GameSystem
 
         public static void Init()
         {
-            Teams[0] = new Team(Color.Red, DefaultTurnTime);
-            Teams[1] = new Team(Color.Blue, DefaultTurnTime);
+            Teams[0] = new Team(Color.Red, true);
+            Teams[1] = new Team(Color.Blue, false);
             _currentIndex = 0;
-            Teams[_currentIndex].RefreshTurn(DefaultTurnTime);
+            Teams[_currentIndex].RefreshTurn();
         }
 
         public static void Update(GameTime gameTime)
@@ -36,7 +35,7 @@ namespace LurkerCommand.GameSystem
         public static void NextTurn()
         {
             _currentIndex = (_currentIndex + 1) % Teams.Length;
-            Teams[_currentIndex].RefreshTurn(DefaultTurnTime);
+            Teams[_currentIndex].RefreshTurn();
         }
 
         public static void AddUnitToTeam(int teamIndex, Unit unit)
@@ -46,5 +45,7 @@ namespace LurkerCommand.GameSystem
                 Teams[teamIndex].AddUnit(unit);
             }
         }
+
+        public static Team GetTeamByIndex(int teamIndex) => Teams[teamIndex];
     }
 }

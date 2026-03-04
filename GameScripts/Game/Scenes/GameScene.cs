@@ -25,9 +25,16 @@ namespace LurkerCommand.Scenes
             CameraMovement cmMovement = new CameraMovement(cm, new Vector2(Field.MapWidth / 2, Field.MapHeight / 2));
             Add(cmMovement);
 
-            Unit unit = new Unit(AssetManager.GetFont("Arial"), new Point(4, 1), 3, TeamManager.CurrentTeam);
+            Unit unit = new Unit(AssetManager.GetFont("Arial"), new Point(4, 1), 3);
+            Unit enemyUnit = new Unit(AssetManager.GetFont("Arial"), new Point(5, 2), 4);
+
             TeamManager.AddUnitToTeam(0, unit);
+            TeamManager.AddUnitToTeam(1, enemyUnit);
+
             Add(unit);
+            Add(enemyUnit);
+
+            Field.UpdateVisibility(unit);
         }
 
         public override void Update(GameTime gameTime)

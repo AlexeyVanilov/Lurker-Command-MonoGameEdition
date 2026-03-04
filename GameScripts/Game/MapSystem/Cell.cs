@@ -25,6 +25,7 @@ namespace LurkerCommand.MapSystem
                 isVisible = value;
 
                 cellImage.Color = value ? defaultColor : hiddenColor;
+                currentUnit?.isVisible = value;
             }
         }
         public override void Draw(GameTime gameTime, SpriteBatch sb) {
@@ -57,9 +58,11 @@ namespace LurkerCommand.MapSystem
 
             Toggle(false);
         }
-        public void BindUnit(Unit unit) {
+        public void BindUnit(Unit unit)
+        {
             currentUnit = unit;
             IsEmpty = false;
+            if (unit != null) unit.isVisible = this.IsVisible;
         }
         public void Unbind() {
             currentUnit = null;

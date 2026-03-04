@@ -15,6 +15,7 @@ namespace LurkerCommand.GameSystem
         private int maxMoves = 25;
         private int moves;
         private Team team;
+        private bool isPlayer;
         private const float draggingColorMultiplier = 0.6f;
         public Text valueText;
         public const int maxValue = 9;
@@ -37,24 +38,36 @@ namespace LurkerCommand.GameSystem
         public Point gridPosition { get; set; }
         public Cell currentCell;
         public bool isVisible;
-        public Unit(SpriteFont font, Point gridPosition, int Value, Team team) : base(Vector2.Zero, Vector2.One)
+        public Unit(SpriteFont font, Point startPoint, int initialValue) : base(Vector2.Zero, Vector2.One)
         {
+            gridPosition = startPoint;
+            OrderInLayer = 2;
+
             valueText = new Text(font, "", Vector2.Zero);
             valueText.Transform.Parent = Transform;
-            valueText.OrderInLayer = 1;
+            valueText.OrderInLayer = 3;
 
-            this.Value = Value;
-            Moves = Value;
+            Value = initialValue;
+            Moves = initialValue;
 
-            Cell bindedCell = Field.GetCell(gridPosition);
-            MoveUnit(bindedCell);
+            Cell bindedCell = Field.GetCell(startPoint);
+            if (bindedCell != null) ForceBind(bindedCell);
+        }
 
-            valueText.Color = team.TeamColor;
-            this.team = team;
+        private void ForceBind(Cell cell)
+        {
+            currentCell?.Unbind();
+            currentCell = cell;
+            cell.BindUnit(this);
+            gridPosition = cell.gridPosition;
+
+            Transform.LocalPosition = cell.Transform.LocalPosition +
+                                       cell.cellImage.GetSize().ToVector2() * 0.5f;
         }
         public void SetTeam(Team team) {
             this.team = team;
             valueText.Color = team.TeamColor;
+            isPlayer = team.isPlayer;
         }
         public void BindCell(Cell cell)
         {
@@ -66,6 +79,7 @@ namespace LurkerCommand.GameSystem
         }
         public override void Draw(GameTime gameTime, SpriteBatch sb)
         {
+            if (!isPlayer && !isVisible) return;
             valueText.Draw(gameTime, sb);
         }
         public Rectangle GetBounds() => valueText.GetBounds();
@@ -83,7 +97,7 @@ namespace LurkerCommand.GameSystem
                 MoveTo(currentCell);
             }
         }
-        public bool CanMove() => Value > 1 && Moves > 0;
+        public bool CanMove() => isPlayer && Value > 1 && Moves > 0;
         private void MoveTo(Cell cell) {
             Transform.LocalPosition = cell.Transform.LocalPosition + cell.cellImage.GetSize().ToVector2() * 0.5f;
         }

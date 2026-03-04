@@ -139,10 +139,7 @@ namespace LurkerCommand.MapSystem
 
         public static Cell GetCell(Point p) => GetCell(p.X, p.Y);
 
-        public static Cell GetCell(int x, int y)
-        {
-            return ((uint)x < SizeX && (uint)y < SizeY) ? cells[x, y] : null;
-        }
+        public static Cell GetCell(int x, int y) => ((uint)x < SizeX && (uint)y < SizeY) ? cells[x, y] : null;
 
         public static bool CellInField(int x, int y) => (uint)x < SizeX && (uint)y < SizeY;
         public static bool CellInField(Cell cell) => cell != null && CellInField(cell.gridPosition.X, cell.gridPosition.Y);
