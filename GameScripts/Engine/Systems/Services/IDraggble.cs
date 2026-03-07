@@ -3,8 +3,11 @@
 namespace GameEngine.Services {
     public interface IDraggable
     {
-        void OnDragStart();
-        void OnDragUpdate(Vector2 position);
-        void OnDragEnd();
+        void OnDragStartLBM();
+        void OnDragUpdateLBM(Vector2 position);
+        void OnDragEndLBM();
+        void OnDragStartRBM();
+        void OnDragUpdateRBM(Vector2 position);
+        void OnDragEndRBM();
     }
 }

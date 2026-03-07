@@ -11,7 +11,6 @@ namespace LurkerCommand.Scenes
     public sealed class GameScene : Scene
     {
         private readonly GraphicsDevice _device;
-
         public GameScene(GraphicsDevice device) => _device = device;
 
         public override void Load()
@@ -36,12 +35,19 @@ namespace LurkerCommand.Scenes
 
                 Field.GetCell(data.position).BindUnit(newUnit);
             }
+            TeamManager.GetCurrentTeam().RefreshTurn();
         }
 
         public override void Update(GameTime gameTime)
         {
-            TeamManager.Update(gameTime);
+            HandleGameInput();
             base.Update(gameTime);
+        }
+
+        private void HandleGameInput()
+        {
+            Vector2 mouseWorld = camera.ScreenToWorld(InputManager.MousePosition);
+            Cell mouseCell = Field.GetCellByWorldPos(mouseWorld);
         }
     }
 }

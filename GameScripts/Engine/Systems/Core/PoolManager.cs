@@ -1,41 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace GameEngine.Systems
 {
     public static class PoolManager
     {
-        private static readonly Dictionary<Type, Queue<object>> _pools = new();
+        private static class Cache<T> where T : class, IPoolable, new()
+        {
+            public static readonly Queue<T> Nodes = new();
+        }
 
         public static T Get<T>() where T : class, IPoolable, new()
         {
-            var type = typeof(T);
-
-            if (!_pools.ContainsKey(type))
-                _pools[type] = new Queue<object>();
-
-            T obj;
-            if (_pools[type].Count > 0)
-            {
-                obj = (T)_pools[type].Dequeue();
-            }
-            else
-            {
-                obj = new T();
-            }
-
+            if (!Cache<T>.Nodes.TryDequeue(out T obj)) obj = new T();
             obj.IsInPool = false;
             obj.OnSpawn();
             return obj;
         }
 
-        public static void Return<T>(T obj) where T : class, IPoolable
+        public static void Return<T>(T obj) where T : class, IPoolable, new()
         {
-            if (obj.IsInPool) return;
-
+            if (obj == null || obj.IsInPool) return;
             obj.OnDespawn();
             obj.IsInPool = true;
-            _pools[typeof(T)].Enqueue(obj);
+            Cache<T>.Nodes.Enqueue(obj);
         }
     }
 }

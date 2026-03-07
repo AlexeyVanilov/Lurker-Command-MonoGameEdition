@@ -16,7 +16,6 @@ namespace LurkerCommand.GameSystem
             Teams[0] = new Team(Color.Red, true);
             Teams[1] = new Team(Color.Blue, false);
             _currentIndex = 0;
-            Teams[_currentIndex].RefreshTurn();
         }
 
         public static void Update(GameTime gameTime)
@@ -47,5 +46,6 @@ namespace LurkerCommand.GameSystem
         }
 
         public static Team GetTeamByIndex(int teamIndex) => Teams[teamIndex];
+        public static Team GetCurrentTeam() => Teams[_currentIndex];
     }
 }

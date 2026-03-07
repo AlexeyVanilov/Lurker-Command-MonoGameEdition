@@ -66,7 +66,7 @@ namespace LurkerCommand.MapSystem
         {
             currentUnit = unit;
             IsEmpty = false;
-            if (unit != null) unit.isVisible = this.IsVisible;
+            if (unit != null) unit.isVisible = IsVisible;
         }
         public void Unbind() {
             currentUnit = null;

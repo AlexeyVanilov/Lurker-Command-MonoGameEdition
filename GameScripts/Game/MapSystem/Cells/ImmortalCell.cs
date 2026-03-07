@@ -10,7 +10,7 @@ namespace LurkerCommand.MapSystem
         private Color _hiddenColor;
         public override bool canCaptured { get; set; } = false;
         public override CellType cellType { get; set; } = CellType.ImmortalCell;
-        public override Color defaultColor { get; set; } = Color.Red;
+        public override Color defaultColor { get; set; }
         public override Color hiddenColor {
             get => _hiddenColor;
             set {
@@ -19,8 +19,6 @@ namespace LurkerCommand.MapSystem
             }
         }
         public ImmortalCell(Texture2D texture, Vector2 position, Vector2 scale) : base(texture, position, scale) {
-            defaultColor = Color.Red;
-
             UpdateColor(defaultColor.R, defaultColor.G, defaultColor.B);
         }
 

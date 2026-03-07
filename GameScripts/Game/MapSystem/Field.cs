@@ -230,10 +230,11 @@ namespace LurkerCommand.MapSystem
             UpdateUnitSight(unit);
         }
 
-        public static void UpdateTeamVisibility(ReadOnlySpan<Unit> units)
+        public static void UpdateTeamVisibility(Team team)
         {
+            if (!team.isPlayer) return;
             ClearVisibility();
-            foreach (var unit in units)
+            foreach (var unit in team.GetUnits())
             {
                 UpdateUnitSight(unit);
             }

@@ -1,9 +1,11 @@
 ﻿using GameEngine.Systems;
 using LurkerCommand.MapSystem;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace LurkerCommand.GameSystem
@@ -38,52 +40,33 @@ namespace LurkerCommand.GameSystem
 
             TimeLeft = Moves * TeamManager.TimeMultiplier;
         }
-        public void MergeUnit(Unit baseUnit, Unit refUnit) {
-            if (baseUnit == refUnit) return;
+        public bool MergeUnit(Unit baseUnit, Unit refUnit) {
+            if (Moves <= 0) return false;
             baseUnit.Value += (sbyte)(refUnit.Value - 1);
-            baseUnit.Moves = Math.Max(baseUnit.Moves, refUnit.Moves);
+            baseUnit.Moves += refUnit.Moves;
             
             PoolManager.Return(refUnit);
 
-            Field.UpdateTeamVisibility(GetUnits());
-            Moves--;
+            Field.UpdateTeamVisibility(this);
+            ConsumeMove();
+            return true;
         }
-        public void SplitUnit(Unit baseUnit)
-        {
-            if (baseUnit.Value <= 1) return;
+        public bool SplitUnit(Unit baseUnit, Cell cell) {
+            if (Moves <= 0) return false;
 
-            sbyte oldValue = baseUnit.Value;
-            sbyte newValue = (sbyte)(oldValue / 2);
+            sbyte total = baseUnit.Value;
+            sbyte taken = (sbyte)(total / 2);
 
-            Point spawnPos = FindEmptyNeighbor(baseUnit.gridPosition);
+            Unit clone = PoolManager.Get<Unit>();
+            clone.Setup(baseUnit.valueText.Font, Point.Zero, taken);
+            clone.SetTeam(this);
+            clone.MoveUnit(cell);
+            _units.Add(clone);
+            if(SceneManager.CurrentScene.Contains(clone))
+                SceneManager.Add(clone);
 
-            if (spawnPos == new Point(-1, -1)) return;
-
-            baseUnit.Value = (sbyte)(oldValue - newValue);
-            baseUnit.UpdateText();
-
-            Unit unitClone = PoolManager.Get<Unit>();
-
-            SpriteFont font = baseUnit.valueText.Font;
-
-            unitClone.Setup(font, spawnPos, newValue);
-            unitClone.SetTeam(this);
-            AddUnit(unitClone);
-
-            Field.UpdateTeamVisibility(GetUnits());
-            Moves--;
-        }
-
-        private Point FindEmptyNeighbor(Point pos)
-        {
-            Point[] dirs = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
-            foreach (var d in dirs)
-            {
-                Point np = new Point(pos.X + d.X, pos.Y + d.Y);
-                Cell c = Field.GetCell(np);
-                if (c != null && c.IsEmpty) return np;
-            }
-            return new Point(-1, -1);
+            ConsumeMove();
+            return true;
         }
         public void SkipMove() {
             TimeLeft = 0f;
