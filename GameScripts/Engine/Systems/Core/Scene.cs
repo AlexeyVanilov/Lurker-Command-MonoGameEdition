@@ -17,7 +17,7 @@ namespace GameEngine.Systems
         private readonly List<GameObject> _toAdd = new(128);
         private readonly List<GameObject> _toRemove = new(128);
 
-        protected Camera2D camera;
+        public Camera2D camera { get; private set; }
         private bool _needsSort;
 
         private IDraggable _currentDragged;

@@ -17,8 +17,7 @@ namespace LurkerCommand.MapSystem
         public Point gridPosition { get; set; }
         public Image cellImage;
         public const byte colorHiddenEffect = 175;
-
-        protected Unit currentUnit = null;
+        public Unit currentUnit = null;
         
         private bool isVisible = false;
         private bool isEmpty = true;

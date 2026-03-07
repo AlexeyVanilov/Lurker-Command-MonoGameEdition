@@ -29,7 +29,8 @@ namespace LurkerCommand.Scenes
 
             foreach (var data in spawnData)
             {
-                Unit newUnit = new Unit(AssetManager.GetFont("Arial"), data.position, 3);
+                Unit newUnit = new Unit();
+                newUnit.Setup(AssetManager.GetFont("Arial"), data.position, 3);
                 TeamManager.AddUnitToTeam(data.team, newUnit);
                 Add(newUnit);
 

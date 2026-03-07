@@ -9,11 +9,10 @@ using System;
 
 namespace LurkerCommand.GameSystem
 {
-    public sealed class Unit : Entity, IGrid, IDraggable, IRect
+    public sealed class Unit : Entity, IGrid, IDraggable, IRect, IPoolable
     {
         private UnitStats _stats;
-
-        private Team team;
+        public Team team { get; private set; }
         private bool isPlayer;
         private const float draggingColorMultiplier = 0.6f;
         public Text valueText;
@@ -38,22 +37,13 @@ namespace LurkerCommand.GameSystem
         }
         public Action onMoved;
         public Point gridPosition { get; set; }
+        public bool IsInPool { get; set; }
+
         public Cell currentCell;
         public bool isVisible;
-        public Unit(SpriteFont font, Point startPoint, sbyte initialValue) : base(Vector2.Zero, Vector2.One)
+        public Unit() : base(Vector2.Zero, Vector2.One)
         {
-            gridPosition = startPoint;
             OrderInLayer = 2;
-
-            valueText = new Text(font, "", Vector2.Zero);
-            valueText.Transform.Parent = Transform;
-            valueText.OrderInLayer = OrderInLayer + 1;
-
-            Value = initialValue;
-            Moves = initialValue;
-
-            Cell bindedCell = Field.GetCell(startPoint);
-            if (bindedCell != null) ForceBind(bindedCell);
         }
 
         private void ForceBind(Cell cell)
@@ -63,8 +53,7 @@ namespace LurkerCommand.GameSystem
             cell.BindUnit(this);
             gridPosition = cell.gridPosition;
 
-            Transform.LocalPosition = cell.Transform.LocalPosition +
-                                       cell.cellImage.GetSize().ToVector2() * 0.5f;
+            MoveTo(cell);
         }
         public void SetTeam(Team team) {
             this.team = team;
@@ -125,7 +114,29 @@ namespace LurkerCommand.GameSystem
             if (!CanMove()) return;
             Transform.LocalPosition = position;
         }
+        public void Setup(SpriteFont font, Point startPoint, sbyte initialValue)
+        {
+            gridPosition = startPoint;
 
+            if (valueText == null)
+            {
+                valueText = new Text(font, "", Vector2.Zero);
+                valueText.Transform.Parent = Transform;
+                valueText.OrderInLayer = OrderInLayer + 1;
+            }
+            else
+            {
+                valueText.Font = font;
+            }
+
+            Value = initialValue;
+            Moves = initialValue;
+
+            Cell bindedCell = Field.GetCell(startPoint);
+            if (bindedCell != null) ForceBind(bindedCell);
+
+            OnSpawn();
+        }
         public void OnDragEnd()
         {
             valueText.Color = team.TeamColor;
@@ -152,6 +163,18 @@ namespace LurkerCommand.GameSystem
                 MoveUnit(targetCell, distance);
             }
             else MoveTo(currentCell);
+        }
+
+        public void OnSpawn() {
+            IsActive = true;
+        }
+
+        public void OnDespawn() {
+            team = null;
+            currentCell?.Unbind();
+            currentCell = null;
+            IsActive = false;
+            onMoved = null;
         }
     }
 }

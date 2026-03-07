@@ -216,7 +216,6 @@ namespace LurkerCommand.MapSystem
 
                 Cell cell = cells[nx, ny];
                 if (!cell.IsEmpty) break;
-
                 ResultBuffer[count++] = cell;
             }
             return count;
