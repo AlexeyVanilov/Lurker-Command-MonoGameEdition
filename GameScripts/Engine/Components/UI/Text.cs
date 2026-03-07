@@ -41,7 +41,7 @@ namespace GameEngine.Components.UI
             UpdateMetrics();
         }
 
-        private void UpdateMetrics()
+        public void UpdateMetrics()
         {
             if (string.IsNullOrEmpty(_text))
             {
@@ -68,7 +68,7 @@ namespace GameEngine.Components.UI
             return _cachedBounds;
         }
 
-        private void UpdateBounds()
+        public void UpdateBounds()
         {
             Vector2 worldPos = Transform.WorldPosition;
             Vector2 scale = Transform.LocalScale;
@@ -87,12 +87,6 @@ namespace GameEngine.Components.UI
 
             sb.DrawString(Font, _text, Transform.WorldPosition, Color,
                 Transform.LocalRotation, _origin, Transform.LocalScale, SpriteEffects.None, 0f);
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-            base.Update(gameTime);
-            _boundsDirty = true;
         }
     }
 }

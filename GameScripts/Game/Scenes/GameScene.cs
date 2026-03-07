@@ -17,6 +17,7 @@ namespace LurkerCommand.Scenes
         {
             Field.SetMap(this);
             TeamManager.Init();
+            GameUI.InitUI();
 
             Camera2D cm = new Camera2D(_device);
             SetCamera(cm);
