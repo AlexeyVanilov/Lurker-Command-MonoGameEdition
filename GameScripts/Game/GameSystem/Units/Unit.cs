@@ -142,16 +142,17 @@ namespace LurkerCommand.GameSystem
         public void OnDragEndLBM()
         {
             valueText.Color = team.TeamColor;
-            Field.ToggleMoveNotes(currentCell, false, Moves);
+            Field.ToggleMoveNotes(currentCell, false, Value);
 
             Cell target = Field.GetCellByWorldPos(Transform.LocalPosition);
+            var avaiableCells = Field.GetAvailableCells(currentCell, Value);
 
             if (target != null && target != currentCell)
             {
                 int dist = Math.Abs(target.gridPosition.X - currentCell.gridPosition.X) +
                            Math.Abs(target.gridPosition.Y - currentCell.gridPosition.Y);
 
-                if (dist <= Moves)
+                if (dist <= Value)
                 {
                     if (!target.IsEmpty && target.currentUnit.team == team && dist == 1)
                     {
@@ -162,7 +163,7 @@ namespace LurkerCommand.GameSystem
                         return;
                     }
 
-                    if (target.IsEmpty)
+                    if (target.IsEmpty && avaiableCells.Contains(target))
                     {
                         MoveUnit(target, (sbyte)dist);
                         return;

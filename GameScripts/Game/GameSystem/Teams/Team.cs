@@ -23,14 +23,12 @@ namespace LurkerCommand.GameSystem
             this.isPlayer = isPlayer;
         }
 
-        public void AddUnit(Unit unit)
-        {
+        public void AddUnit(Unit unit) {
             unit.SetTeam(this);
             _units.Add(unit);
         }
 
-        public void RefreshTurn()
-        {
+        public void RefreshTurn() {
             var span = GetUnits();
             for (int i = 0; i < span.Length; i++) {
                 Moves += span[i].Value;
