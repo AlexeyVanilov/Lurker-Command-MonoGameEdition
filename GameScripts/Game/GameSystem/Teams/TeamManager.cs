@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using LurkerCommand.GameSystem.AI;
+using Microsoft.Xna.Framework;
 using System;
 
 namespace LurkerCommand.GameSystem
@@ -7,6 +8,7 @@ namespace LurkerCommand.GameSystem
     {
         public const float TimeMultiplier = 1.2f;
         private static readonly Team[] Teams = new Team[2];
+        private static Bot bot;
         private static int _currentIndex;
 
         public static Team CurrentTeam => Teams[_currentIndex];
@@ -15,6 +17,7 @@ namespace LurkerCommand.GameSystem
         {
             Teams[0] = new Team(Color.Red, true) { Name = "Red" };
             Teams[1] = new Team(Color.Blue, false) { Name = "Blue" };
+            bot = new Bot(Teams[1]);
             _currentIndex = 0;
             Teams[_currentIndex].RefreshTurn();
         }
@@ -30,6 +33,7 @@ namespace LurkerCommand.GameSystem
             {
                 NextTurn();
             }
+            bot.Update(gameTime);
         }
 
         public static void NextTurn()

@@ -110,11 +110,7 @@ namespace LurkerCommand.MapSystem
                 _ => new Cell(AssetManager.GetTexture("square"), pos, scale)
             };
         }
-
         public static ReadOnlySpan<Cell> GetAvailableCells(Cell start, int range)
-            => GetStraightLines(start, range);
-
-        public static ReadOnlySpan<Cell> GetStraightLines(Cell start, int range)
         {
             int count = 0;
             int effectiveRange = range - 1;
@@ -203,7 +199,7 @@ namespace LurkerCommand.MapSystem
 
         public static void ToggleMoveNotes(Cell cell, bool toggle, int range)
         {
-            ReadOnlySpan<Cell> available = GetStraightLines(cell, range);
+            ReadOnlySpan<Cell> available = GetAvailableCells(cell, range);
             for (int i = 0; i < available.Length; i++)
             {
                 available[i].Toggle(toggle);

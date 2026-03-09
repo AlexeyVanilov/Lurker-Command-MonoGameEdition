@@ -58,9 +58,11 @@ namespace LurkerCommand.GameSystem
         public void SetTeam(Team team)
         {
             this.team = team;
-            valueText.Color = team.TeamColor;
-            isPlayer = team.isPlayer;
-            GetVision();
+            if(team != null) {
+                valueText.Color = team.TeamColor;
+                isPlayer = team.isPlayer;
+                GetVision();
+            }
         }
 
         public void BindCell(Cell cell)
@@ -114,19 +116,17 @@ namespace LurkerCommand.GameSystem
             IsActive = true;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool CanMove() => CanControl() && Value > 1 && Moves > 0;
+        public bool CanMove() => Value > 1 && Moves > 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool CanControl() => team.isTurn && isPlayer;
         private void MoveTo(Cell cell) => Transform.LocalPosition = cell.Transform.LocalPosition + cell.cellImage.GetSize().ToVector2() * 0.5f;
         public void UpdateText() => valueText.text = StringCache.Get(Value);
         public void OnDragStartLBM()
         {
-            if (!CanMove()) return;
+            if (!CanMove() || !CanControl()) return;
             valueText.Color *= draggingColorMultiplier;
             Field.ToggleMoveNotes(currentCell, true, Value);
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private sbyte GetValueOrMoves() => (sbyte)MathF.Max(Value, Moves);
         public void OnDragUpdateLBM(Vector2 position)
         {
             if (CanControl()) Transform.LocalPosition = position;
@@ -134,7 +134,7 @@ namespace LurkerCommand.GameSystem
         public void OnDragEndLBM()
         {
             valueText.Color = team.TeamColor;
-            Field.ToggleMoveNotes(currentCell, false, GetValueOrMoves());
+            Field.ToggleMoveNotes(currentCell, false, Value);
             var avaiable = Field.GetAvailableCells(currentCell, Value);
             Cell target = Field.GetCellByWorldPos(Transform.LocalPosition);
             if (target != null && target != currentCell)
@@ -181,6 +181,11 @@ namespace LurkerCommand.GameSystem
         }
 
         public void OnSpawn() => IsActive = true;
-        public void OnDespawn() { team = null; currentCell?.Unbind(); currentCell = null; IsActive = false; }
+        public void OnDespawn() {
+            team?.RemoveUnit(this); 
+            currentCell?.Unbind(); 
+            currentCell = null; 
+            IsActive = false; 
+        }
     }
 }

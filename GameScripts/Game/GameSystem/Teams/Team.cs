@@ -12,6 +12,8 @@ namespace LurkerCommand.GameSystem
     {
         private readonly List<Unit> _units = new(32);
         public event Action onTurnPast;
+        public event Action<Unit> onUnitAdded;
+        public event Action<Unit> onUnitRemoved;
         public int Moves { get; private set; }
         public bool isTurn = false;
         public readonly bool isPlayer;
@@ -30,6 +32,14 @@ namespace LurkerCommand.GameSystem
         {
             unit.SetTeam(this);
             _units.Add(unit);
+            onUnitAdded?.Invoke(unit);
+        }
+
+        public void RemoveUnit(Unit unit)
+        {
+            unit.SetTeam(null);
+            _units.Remove(unit);
+            onUnitRemoved?.Invoke(unit);
         }
 
         public void RefreshTurn()
