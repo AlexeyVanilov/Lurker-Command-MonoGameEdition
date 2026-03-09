@@ -42,7 +42,8 @@ namespace LurkerCommand
             AssetManager.Init(Content);
             _graphics.ApplyChanges();
 
-            SceneManager.SetScene(new GameScene(GraphicsDevice));
+            SceneManager.RegisterScene(new GameScene(GraphicsDevice));
+            SceneManager.LoadScene(0);
             base.Initialize();
         }
 
@@ -61,7 +62,7 @@ namespace LurkerCommand
                 ConfigManager.Save();
             }
 
-            SceneManager.CurrentScene?.Update(gameTime);
+            SceneManager.Update(gameTime);
             base.Update(gameTime);
         }
 
@@ -70,7 +71,7 @@ namespace LurkerCommand
             if (!IsActive) return;
 
             GraphicsDevice.Clear(Color.Black);
-            SceneManager.CurrentScene?.Draw(gameTime, _spriteBatch);
+            SceneManager.Draw(gameTime, _spriteBatch);
             base.Draw(gameTime);
         }
     }
