@@ -11,11 +11,11 @@ namespace LurkerCommand.MapSystem
 {
     public class Cell : Entity, IGrid
     {
-        public virtual bool canCaptured { get; set; } = true;
-        public virtual byte idleBonus { get; set; } = 1;
-        public virtual Color defaultColor { get; set; } = Color.White;
-        public virtual Color hiddenColor { get; set; } = new Color(175, 175, 175);
-        public virtual CellType cellType { get; set; } = CellType.DefaultCell;
+        public virtual bool canCaptured => true;
+        public virtual byte idleBonus => 1;
+        public virtual Color defaultColor => Color.White;
+        public virtual Color hiddenColor => new Color(175, 175, 175);
+        public virtual CellType cellType => CellType.DefaultCell;
         public Point gridPosition { get; set; }
         public Image cellImage;
         public Unit currentUnit = null;
@@ -79,6 +79,7 @@ namespace LurkerCommand.MapSystem
         }
 
         public void Unbind() {
+            if (currentUnit == null) return;
             currentUnit.giveBonus = false;
             currentUnit = null; 
             IsEmpty = true; 
