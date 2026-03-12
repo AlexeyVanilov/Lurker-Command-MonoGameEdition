@@ -59,10 +59,7 @@ namespace LurkerCommand.GameSystem.AI
 
             if (target != null)
             {
-                sbyte dist = (sbyte)(Math.Abs(target.gridPosition.X - unit.gridPosition.X) +
-                           Math.Abs(target.gridPosition.Y - unit.gridPosition.Y));
-
-                unit.MoveUnit(target, dist);
+                UnitSystem.MoveUnit(unit, target, UnitSystem.GetDistance(unit.currentCell, target));
                 _team.ConsumeMove();
             }
 

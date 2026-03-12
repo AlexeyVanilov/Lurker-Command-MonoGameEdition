@@ -1,7 +1,4 @@
-﻿using GameEngine.Systems;
-using GameEngine.Services;
-using LurkerCommand.MapSystem;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -30,33 +27,16 @@ namespace LurkerCommand.GameSystem
 
         public void AddUnit(Unit unit)
         {
-            unit.SetTeam(this);
+            UnitSystem.SetTeam(unit, this);
             _units.Add(unit);
             onUnitAdded?.Invoke(unit);
         }
 
         public void RemoveUnit(Unit unit)
         {
-            unit.SetTeam(null);
+            UnitSystem.SetTeam(unit, null);
             _units.Remove(unit);
             onUnitRemoved?.Invoke(unit);
-        }
-        public void AttackUnit(Unit ally, Unit enemy)
-        {
-            int aVal = ally.Value;
-            int eVal = enemy.Value;
-
-            if (aVal > eVal) {
-                enemy.Value = 0;
-                ally.Value = (sbyte)(aVal + eVal);
-            }
-            else if (aVal < eVal) {
-                ally.Value = 0;
-            }
-            else {
-                ally.Value = 0;
-                enemy.Value = 0;
-            }
         }
         public void RefreshTurn()
         {
@@ -75,40 +55,6 @@ namespace LurkerCommand.GameSystem
                 unit.Moves += unit.Value;
             }
             TimeLeft = Moves * TeamManager.TimeMultiplier;
-        }
-
-        public bool MergeUnit(Unit baseUnit, Unit refUnit)
-        {
-            if (Moves <= 0) return false;
-            baseUnit.Value += (sbyte)(refUnit.Value - 1);
-            baseUnit.Moves += refUnit.Moves;
-            PoolManager.Return(refUnit);
-            Field.UpdateTeamVisibility(this);
-            ConsumeMove();
-            return true;
-        }
-
-        public bool SplitUnit(Unit baseUnit, Cell cell)
-        {
-            if (Moves <= 0 || baseUnit.Value < 2) return false;
-            sbyte taken = (sbyte)(baseUnit.Value / 2);
-
-            if (!cell.IsEmpty && cell.currentUnit.team == this)
-            {
-                cell.currentUnit.Value += taken;
-                ConsumeMove();
-                Field.UpdateTeamVisibility(this);
-                return true;
-            }
-
-            Unit clone = PoolManager.Get<Unit>();
-            clone.Setup(baseUnit.valueText.Font, cell.gridPosition, taken);
-            clone.SetTeam(this);
-            clone.MoveUnit(cell);
-            _units.Add(clone);
-            SceneManager.Add(clone);
-            ConsumeMove();
-            return true;
         }
 
         public void SkipMove()
