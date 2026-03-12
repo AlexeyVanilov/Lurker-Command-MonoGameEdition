@@ -1,12 +1,12 @@
 ﻿namespace LurkerCommand.GameSystem {
     public struct UnitStats {
-        public sbyte value;
-        public sbyte moves;
+        public int value;
+        public int moves;
 
-        public const sbyte maxMoves = 25;
-        public const sbyte maxValue = 9;
+        public const int maxMoves = 25;
+        public const int maxValue = 9;
 
-        public UnitStats(sbyte value, sbyte moves) {
+        public UnitStats(int value, int moves) {
             this.value = value;
             this.moves = moves;
         }

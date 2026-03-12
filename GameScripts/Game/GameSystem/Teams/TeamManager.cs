@@ -11,25 +11,25 @@ namespace LurkerCommand.GameSystem
         private static Bot bot;
         private static int _currentIndex;
 
-        public static Team CurrentTeam => Teams[_currentIndex];
+        public static Team CurrentTeam {
+            get => Teams[_currentIndex];
+        }
 
         public static void Init()
         {
             Teams[0] = new Team(Color.Red, true) { Name = "Red" };
             Teams[1] = new Team(Color.Blue, false) { Name = "Blue" };
             bot = new Bot(Teams[1]);
-            _currentIndex = 0;
-            Teams[_currentIndex].RefreshTurn();
+            _currentIndex = 1;
         }
 
         public static void Update(GameTime gameTime)
         {
-            Team current = Teams[_currentIndex];
-            current.TimeLeft -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            CurrentTeam.TimeLeft -= (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            GameUI.UpdateTime(current.Name, (int)MathF.Ceiling(current.TimeLeft));
+            GameUI.UpdateTime(CurrentTeam.Name, (int)MathF.Ceiling(CurrentTeam.TimeLeft));
 
-            if (current.TimeLeft <= 0)
+            if (CurrentTeam.TimeLeft <= 0)
             {
                 NextTurn();
             }
@@ -38,16 +38,15 @@ namespace LurkerCommand.GameSystem
 
         public static void NextTurn()
         {
-            Teams[_currentIndex].SkipMove();
+            CurrentTeam.SkipMove();
             _currentIndex = (_currentIndex + 1) % Teams.Length;
-            Teams[_currentIndex].RefreshTurn();
+            CurrentTeam.RefreshTurn();
         }
 
         public static void AddUnitToTeam(int teamIndex, Unit unit)
         {
             if ((uint)teamIndex < (uint)Teams.Length) Teams[teamIndex].AddUnit(unit);
         }
-
         public static Team GetTeamByIndex(int teamIndex) => Teams[teamIndex];
     }
 }

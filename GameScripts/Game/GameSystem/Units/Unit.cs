@@ -17,14 +17,14 @@ namespace LurkerCommand.GameSystem
         private bool isPlayer;
         private const float draggingColorMultiplier = 0.6f;
         public Text valueText;
-        public sbyte Value
+        public int Value
         {
             get => _stats.value;
             set
             {
                 _stats.value = value;
                 if (_stats.value > UnitStats.maxValue) {
-                    Value = 1;
+                    _stats.value = 1;
                 }
                 else if(_stats.value < 1) {
                     Kill(this);
@@ -33,10 +33,13 @@ namespace LurkerCommand.GameSystem
                 UpdateText();
             }
         }
-        public sbyte Moves
+        public int Moves
         {
             get => _stats.moves;
-            set => _stats.moves = (sbyte)MathHelper.Clamp(value, 0, UnitStats.maxMoves);
+            set {
+                _stats.moves = MathHelper.Clamp(value, 0, UnitStats.maxMoves);
+                team?.ConsumeMove();
+            }
         }
         public bool giveBonus = true;
         public Point gridPosition { get; set; }
@@ -142,21 +145,23 @@ namespace LurkerCommand.GameSystem
                 int dist = Math.Abs(target.gridPosition.X - currentCell.gridPosition.X) + Math.Abs(target.gridPosition.Y - currentCell.gridPosition.Y);
                 if (dist <= Value)
                 {
-                    if (!available.Contains(target)) return;
-
-                    if (!target.IsEmpty) {
-                        if(target.currentUnit.team == team && dist == 1) {
-                            if (!team.MergeUnit(target.currentUnit, this))
-                                MoveTo(currentCell);
+                    if (!target.IsEmpty)
+                    {
+                        if (target.currentUnit.team == team && dist == 1)
+                        {
+                            if (team.MergeUnit(target.currentUnit, this)) return;
                         }
-                        else if(target.currentUnit.team != team) {
+                        else if (target.currentUnit.team != team && dist <= Value)
+                        {
                             team.AttackUnit(this, target.currentUnit);
+                            return;
                         }
+                        MoveTo(currentCell);
                         return;
                     }
-                    if (target.IsEmpty) {
-                        MoveUnit(target, (sbyte)dist); 
-                        return; 
+                    if (available.Contains(target)) {
+                        MoveUnit(target, (sbyte)dist);
+                        return;
                     }
                 }
             }

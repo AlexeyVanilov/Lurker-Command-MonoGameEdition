@@ -47,7 +47,7 @@ namespace LurkerCommand.GameSystem {
             _skipMoveButton = new Button(buttonTexture, buttonPosition, new Vector2(0.2f, 0.2f), Color.White, font, "Skip Move");
             _skipMoveButton.text.Transform.LocalScale = new Vector2(0.2f, 0.2f);
             _skipMoveButton.text.UpdateBounds();
-            _skipMoveButton.onClicked += TeamManager.NextTurn;
+            _skipMoveButton.onClicked += TeamManager.GetTeamByIndex(0).SkipMove;
 
             AddUI(_timeText);
             AddUI(_skipMoveButton);

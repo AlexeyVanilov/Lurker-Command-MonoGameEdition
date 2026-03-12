@@ -43,8 +43,8 @@ namespace LurkerCommand.GameSystem
         }
         public void AttackUnit(Unit ally, Unit enemy)
         {
-            sbyte aVal = ally.Value;
-            sbyte eVal = enemy.Value;
+            int aVal = ally.Value;
+            int eVal = enemy.Value;
 
             if (aVal > eVal) {
                 enemy.Value = 0;
@@ -64,8 +64,15 @@ namespace LurkerCommand.GameSystem
             var span = GetUnits();
             for (int i = 0; i < span.Length; i++)
             {
-                Moves += span[i].Moves;
-                span[i].giveBonus = true;
+                var unit = span[i];
+                Moves += unit.Moves;
+                unit.giveBonus = true;
+                var cell = unit.currentCell;
+                if (cell == null) continue;
+
+                if (cell.OwnerTeam != this) cell.Capture(this);
+                if (unit.giveBonus) unit.Value += (sbyte)cell.idleBonus;
+                unit.Moves += unit.Value;
             }
             TimeLeft = Moves * TeamManager.TimeMultiplier;
         }
@@ -109,19 +116,6 @@ namespace LurkerCommand.GameSystem
             isTurn = false;
             TimeLeft = 0f;
             Moves = 0;
-
-            var span = GetUnits();
-            for (int i = 0; i < span.Length; i++)
-            {
-                var unit = span[i];
-                var cell = unit.currentCell;
-                if (cell == null) continue;
-
-                if (cell.OwnerTeam != this) cell.Capture(this);
-                if (unit.giveBonus) unit.Value += (sbyte)cell.idleBonus;
-                unit.Moves += unit.Value; 
-            }
-
             onTurnPast?.Invoke();
         }
 
